@@ -1977,7 +1977,7 @@
         <!-- Right: Form -->
         <div class="contact-form reveal">
           <div class="form-title">Send Me a Message</div>
-          <form id="contact-form" novalidate>
+          <form id="contact-form" action="https://formspree.io/f/mkjglaor" method="POST" novalidate>
             <div class="form-group">
               <label class="form-label" for="f-name">Your Name</label>
               <input class="form-input" type="text" id="f-name" name="name" placeholder="Jane Smith" required autocomplete="name" />
@@ -2162,9 +2162,7 @@
     const toast = document.getElementById('toast');
     const submitBtn = form.querySelector('.form-submit');
 
-    // ⚠️  REPLACE 'YOUR_FORMSPREE_ID' with your real Formspree form ID.
-    // Steps: go to https://formspree.io → Sign up free → New Form → copy the ID (e.g. xpwzgqkd)
-    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/YOUR_FORMSPREE_ID';
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mkjglaor';
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -2193,9 +2191,7 @@
       } catch (err) {
         toast.style.borderColor = 'rgba(255,80,80,0.4)';
         toast.style.color = '#ff6b6b';
-        toast.innerHTML = FORMSPREE_ENDPOINT.includes('YOUR_FORMSPREE_ID')
-          ? '⚠️ Connect Formspree first — replace YOUR_FORMSPREE_ID in the code.'
-          : '✗ Could not send. Please try again.';
+        toast.innerHTML = '✗ Could not send message. Please try again or reach out via LinkedIn/email.';
         toast.classList.add('show');
       } finally {
         submitBtn.disabled = false;
