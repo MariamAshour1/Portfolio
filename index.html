@@ -179,28 +179,130 @@
     .nav-cta:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(230,57,70,0.5); }
 
     .hamburger {
-      display: none; flex-direction: column; gap: 5px;
-      background: none; padding: 4px; margin-left: auto;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      background: none;
+      width: 44px;
+      height: 44px;
+      padding: 10px;
+      margin-left: auto;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 1002;
+      transition: background var(--transition);
     }
-    .hamburger span { width: 22px; height: 2px; background: var(--c-text); border-radius: 2px; transition: var(--transition); }
+    .hamburger:hover {
+      background: var(--c-surface-2);
+    }
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--c-text);
+      border-radius: 2px;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, background 0.3s ease;
+      transform-origin: center;
+    }
+    .hamburger.open span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+      background: var(--c-primary);
+    }
+    .hamburger.open span:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+    .hamburger.open span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+      background: var(--c-primary);
+    }
+
+    /* Mobile backdrop */
+    .nav-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 14, 0.75);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .nav-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
     /* ============================================================
-       MOBILE NAV
+       MOBILE NAV / SIDE DRAWER
     ============================================================ */
-    @media (max-width: 768px) {
-      .hamburger { display: flex; }
-      .nav-links {
-        position: fixed; inset: var(--nav-h) 0 0 0;
-        flex-direction: column; gap: 0;
-        background: rgba(6,11,20,0.98);
-        backdrop-filter: blur(20px);
-        padding: 2rem 1.5rem;
-        transform: translateX(100%);
-        transition: transform var(--transition);
+    @media (max-width: 900px) {
+      .hamburger {
+        display: flex;
       }
-      .nav-links.open { transform: translateX(0); }
-      .nav-links a { font-size: 1.1rem; padding: 0.75rem 1rem; width: 100%; }
-      .nav-cta { margin-left: 0; margin-top: 0.5rem; text-align: center; }
+      .nav-links {
+        position: fixed;
+        top: var(--nav-h);
+        right: 0;
+        bottom: 0;
+        width: min(320px, 82vw);
+        height: calc(100dvh - var(--nav-h));
+        max-height: calc(100dvh - var(--nav-h));
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.35rem;
+        background: rgba(8, 14, 25, 0.98);
+        backdrop-filter: blur(24px) saturate(1.8);
+        -webkit-backdrop-filter: blur(24px) saturate(1.8);
+        border-left: 1px solid var(--c-border-2);
+        box-shadow: -10px 0 35px rgba(0, 0, 0, 0.65);
+        padding: 1.5rem 1.25rem 2.5rem;
+        transform: translateX(100%);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 999;
+      }
+      .nav-links.open {
+        transform: translateX(0);
+      }
+      .nav-links li {
+        width: 100%;
+        list-style: none;
+      }
+      .nav-links a {
+        font-size: 1rem;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+      }
+      .nav-links a:hover,
+      .nav-links a:focus {
+        background: var(--c-surface-2);
+        color: #fff;
+        transform: translateX(4px);
+      }
+      .nav-links a.active {
+        color: var(--c-primary);
+        background: rgba(230, 57, 70, 0.12);
+        border-left: 3px solid var(--c-primary);
+        font-weight: 600;
+      }
+      .nav-cta {
+        margin-left: 0 !important;
+        margin-top: 0.85rem !important;
+        text-align: center !important;
+        justify-content: center !important;
+        padding: 0.75rem 1.25rem !important;
+      }
     }
 
     /* ============================================================
@@ -1127,6 +1229,9 @@
   <div class="bg-orb bg-orb-2" aria-hidden="true"></div>
   <div class="bg-orb bg-orb-3" aria-hidden="true"></div>
 
+  <!-- Mobile nav backdrop -->
+  <div class="nav-backdrop" id="nav-backdrop" aria-hidden="true"></div>
+
   <!-- ============================================================
        NAVBAR
   ============================================================ -->
@@ -1859,22 +1964,58 @@
       });
     }, { passive: true });
 
-    /* --- Mobile hamburger --- */
-    const hamburger = document.getElementById('hamburger');
-    const navList   = document.getElementById('nav-links');
+    /* --- Mobile side menu & hamburger --- */
+    const hamburger   = document.getElementById('hamburger');
+    const navList     = document.getElementById('nav-links');
+    const navBackdrop = document.getElementById('nav-backdrop');
+
+    function openMobileMenu() {
+      navList.classList.add('open');
+      hamburger.classList.add('open');
+      if (navBackdrop) navBackdrop.classList.add('open');
+      hamburger.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      navList.classList.remove('open');
+      hamburger.classList.remove('open');
+      if (navBackdrop) navBackdrop.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
 
     hamburger.addEventListener('click', () => {
-      const open = navList.classList.toggle('open');
-      hamburger.setAttribute('aria-expanded', open);
+      const isOpen = navList.classList.contains('open');
+      if (isOpen) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
     });
+
+    if (navBackdrop) {
+      navBackdrop.addEventListener('click', closeMobileMenu);
+    }
 
     /* Close mobile nav on link click */
     navList.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => {
-        navList.classList.remove('open');
-        hamburger.setAttribute('aria-expanded', 'false');
-      });
+      a.addEventListener('click', closeMobileMenu);
     });
+
+    /* Close mobile nav on Escape key */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navList.classList.contains('open')) {
+        closeMobileMenu();
+      }
+    });
+
+    /* Reset mobile menu state on desktop resize */
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 900 && navList.classList.contains('open')) {
+        closeMobileMenu();
+      }
+    }, { passive: true });
 
     /* --- Contact Form — Formspree integration --- */
     const form  = document.getElementById('contact-form');
